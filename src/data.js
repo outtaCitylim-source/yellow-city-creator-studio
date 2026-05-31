@@ -1,7 +1,9 @@
 export const business = {
   name: 'Yellow City Custom Tees',
-  tagline: 'Amarillo made. You dream it, we print it.',
+  studioName: 'Yellow City Creator Bar',
+  tagline: 'Amarillo made. World class.',
   address: '3708 Olsen Blvd, Amarillo, TX 79109',
+  cityLine: 'Amarillo, TX · Texas Panhandle',
   website: 'amarillothreads.com',
   phone: '(806) 803-7255',
   hours: 'Open · Closes 5:30 PM',
@@ -35,11 +37,35 @@ export const customers = [
   { name: 'Event Merch Order', segment: 'Event', orders: 2, value: 512, status: 'Pickup' }
 ];
 
-export const services = [
-  'Custom T-Shirts',
-  'Business Uniforms',
-  'DTF Transfers',
-  'Graduation Shirts',
-  'Team Apparel',
-  'Banners & Event Merch'
+export const services = ['Custom T-Shirts', 'Business Uniforms', 'DTF Transfers', 'Graduation Shirts', 'Team Apparel', 'Banners & Event Merch'];
+
+export const techniques = [
+  { code: 'DTF', label: 'Direct to Film', title: 'DTF Print', description: 'Full-color photographic prints on many fabrics. Vivid, wash-resistant, and studio-grade.', price: 'From $6 / transfer' },
+  { code: 'DTG', label: 'Direct to Garment', title: 'DTG Print', description: 'Ink-style printing directly onto the garment for ultra-soft handfeel on premium blanks.', price: 'From $12 / shirt' },
+  { code: 'EMB', label: 'Embroidery', title: 'Embroidery', description: 'Digitized logo embroidery on caps, polos, and jackets for a crisp textured finish.', price: 'From $8 / logo' },
+  { code: 'WASH', label: 'Garment Wash', title: 'Garment Dye & Distress', description: 'Hand-finished dye and distress techniques for one-of-a-kind vintage looks.', price: 'From $18 / piece' }
+];
+
+export const workflow = [
+  { number: '01', title: 'Pick Your Blank', text: 'Budget tees, Comfort Colors, Bella+Canvas, hoodies, hats, and more.' },
+  { number: '02', title: 'Choose Your Style', text: 'Select your decoration method: DTF, DTG, embroidery, garment wash, or mixed media.' },
+  { number: '03', title: 'Build Your Design', text: 'Upload artwork or work with the team. Designs are prepped, digitized, and proofed.' },
+  { number: '04', title: 'Approve & Print', text: 'Review your digital proof, approve it, and the job moves into production.' }
+];
+
+export const catalog = [
+  { title: 'Budget Tees', detail: 'Gildan · Hanes' },
+  { title: 'Premium Tees', detail: 'Bella+Canvas · Next Level' },
+  { title: 'Comfort Colors', detail: 'Garment dyed' },
+  { title: 'Hoodies', detail: 'Pullover · Zip' },
+  { title: 'Caps & Hats', detail: 'Structured · Snapback' },
+  { title: 'Youth Tees', detail: 'Kids sizes XS-XL' },
+  { title: 'Totes & Bags', detail: 'Canvas · Nylon' },
+  { title: 'Workwear', detail: 'Polos · Hi-Vis · Uniforms' }
+];
+
+export const proofPoints = [
+  { title: 'Rush Available', text: 'Same-day and next-day turnaround for time-sensitive orders.' },
+  { title: 'Proof Guaranteed', text: 'Every order is reviewed and approved before printing starts.' },
+  { title: 'Ships Worldwide', text: 'From Amarillo to anywhere — the studio can handle fulfillment.' }
 ];
