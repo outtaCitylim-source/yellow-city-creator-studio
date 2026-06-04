@@ -1,19 +1,65 @@
 {
   "name": "yellow-city-creator-studio",
+  "version": "2.0.0",
+  "description": "Production-ready custom apparel shop management system for Yellow City Custom Tees",
+  "author": {
+    "name": "Dillon Richards",
+    "email": "dillon@yellowcity.local",
+    "url": "https://amarillothreads.com"
+  },
+  "license": "MIT",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/outtaCitylim-source/yellow-city-creator-studio.git"
+  },
+  "homepage": "https://studio.amarillothreads.com",
+  "bugs": {
+    "url": "https://github.com/outtaCitylim-source/yellow-city-creator-studio/issues",
+    "email": "support@yellowcity.local"
+  },
+  "keywords": [
+    "custom-apparel",
+    "shop-management",
+    "pos-system",
+    "order-tracking",
+    "inventory",
+    "crm",
+    "amarillo",
+    "texas"
+  ],
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js,.jsx",
+    "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "migrate:dev": "node api/migrations/run.js",
+    "migrate:prod": "NODE_ENV=production node api/migrations/run.js",
+    "seed": "node api/seed.js",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "lucide-react": "^0.408.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "vitest": "^1.1.0",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }

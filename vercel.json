@@ -1,0 +1,35 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "env": [
+    "DATABASE_URL",
+    "JWT_SECRET",
+    "JWT_EXPIRY",
+    "VITE_API_URL",
+    "VITE_APP_NAME",
+    "NODE_ENV"
+  ],
+  "envDescription": {
+    "DATABASE_URL": "PostgreSQL connection string",
+    "JWT_SECRET": "Secret key for JWT signing",
+    "JWT_EXPIRY": "JWT token expiration time (default: 7d)",
+    "VITE_API_URL": "API endpoint URL",
+    "VITE_APP_NAME": "Application name",
+    "NODE_ENV": "Environment (development/production)"
+  },
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "regions": ["iad1"],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
+}
