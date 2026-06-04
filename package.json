@@ -45,7 +45,9 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "lucide-react": "^0.408.0"
+    "lucide-react": "^0.408.0",
+    "pg": "^8.11.0",
+    "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
