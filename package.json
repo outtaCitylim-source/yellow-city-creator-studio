@@ -43,22 +43,24 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "jsonwebtoken": "^9.0.0",
     "lucide-react": "^0.408.0",
     "pg": "^8.11.0",
-    "jsonwebtoken": "^9.0.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.16.0",
+    "wouter": "^3.10.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.8",
     "eslint": "^8.55.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.1.1",
-    "vitest": "^1.1.0",
-    "@testing-library/react": "^14.1.2",
-    "@testing-library/jest-dom": "^6.1.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "vitest": "^1.1.0"
   },
   "engines": {
     "node": ">=18.0.0",

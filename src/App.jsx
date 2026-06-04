@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Route, Switch, useLocation } from 'wouter';
 import {
   BadgeDollarSign,
   BarChart3,
@@ -14,6 +15,7 @@ import {
   Globe2,
   ImagePlus,
   LayoutDashboard,
+  LogOut,
   Menu,
   MessageSquareText,
   PackageCheck,
@@ -28,7 +30,10 @@ import {
   Wand2,
   X
 } from 'lucide-react';
-import { business, customers, inventory, orders, services } from './data.js';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Login from './pages/Login';
+import { useOrders, useCustomers, useInventory } from './hooks/useApi';
+import { business } from './data.js';
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -54,7 +59,7 @@ const statusClass = {
   'Picked Up': 'status gray'
 };
 
-export default function App() {
+function AppContent() {
   const [active, setActive] = useState('dashboard');
   const [menuOpen, setMenuOpen] = useState(false);
   const [filter, setFilter] = useState('All');
@@ -69,10 +74,19 @@ export default function App() {
     placement: 'Left chest + full back'
   });
 
+  const { user, logout } = useAuth();
+  const { data: ordersData, loading: ordersLoading } = useOrders();
+  const { data: customersData, loading: customersLoading } = useCustomers();
+  const { data: inventoryData, loading: inventoryLoading } = useInventory();
+
+  const orders = ordersData?.orders || [];
+  const customers = customersData?.customers || [];
+  const inventory = inventoryData?.inventory || [];
+
   const filteredOrders = useMemo(() => {
     if (filter === 'All') return orders;
     return orders.filter((order) => order.status === filter);
-  }, [filter]);
+  }, [filter, orders]);
 
   const estimate = useMemo(() => {
     const base = { DTG: 18, DTF: 16, Embroidery: 24, 'Screen Print': 13, Vinyl: 17 }[quote.method] || 16;
@@ -85,17 +99,17 @@ export default function App() {
   }, [quote]);
 
   const CurrentPage = {
-    dashboard: Dashboard,
+    dashboard: () => <Dashboard orders={orders} ordersLoading={ordersLoading} />,
     pos: POS,
     orders: () => <Orders filter={filter} setFilter={setFilter} filteredOrders={filteredOrders} />,
     quotes: () => <QuoteBuilder quote={quote} setQuote={setQuote} estimate={estimate} />,
-    inventory: Inventory,
-    customers: Customers,
+    inventory: () => <Inventory inventory={inventory} inventoryLoading={inventoryLoading} />,
+    customers: () => <Customers customers={customers} customersLoading={customersLoading} />,
     loyalty: Loyalty,
     kiosk: Kiosk,
     website: Website,
     admin: Admin
-  }[active];
+  }[active] || (() => <div>Page not found</div>);
 
   return (
     <div className="app-shell">
@@ -131,6 +145,11 @@ export default function App() {
           <p>{business.address}</p>
           <p>{business.phone}</p>
         </div>
+
+        <button className="logout-button" onClick={logout}>
+          <LogOut size={18} />
+          <span>Logout</span>
+        </button>
       </aside>
 
       {menuOpen && <button className="screen" onClick={() => setMenuOpen(false)} aria-label="Close sidebar" />}
@@ -148,6 +167,7 @@ export default function App() {
               <input placeholder="Search orders, customers, artwork..." />
             </label>
             <button className="gold-button">New Order</button>
+            {user && <span className="user-name">{user.name}</span>}
           </div>
         </header>
         <CurrentPage />
@@ -156,8 +176,13 @@ export default function App() {
   );
 }
 
-function Dashboard() {
-  const openRevenue = orders.filter((order) => order.status !== 'Picked Up').reduce((sum, order) => sum + order.total, 0);
+function Dashboard({ orders, ordersLoading }) {
+  const openRevenue = orders.filter((order) => order.status !== 'Picked Up').reduce((sum, order) => sum + (order.total || 0), 0);
+  
+  if (ordersLoading) {
+    return <div className="loading">Loading dashboard...</div>;
+  }
+
   return (
     <section className="page-grid">
       <div className="hero-card">
@@ -179,9 +204,9 @@ function Dashboard() {
       </div>
 
       <div className="stats-row">
-        <Stat icon={ClipboardList} label="Open jobs" value="5" detail="2 need action" />
+        <Stat icon={ClipboardList} label="Open jobs" value={orders.filter(o => o.status !== 'Picked Up').length} detail="Active orders" />
         <Stat icon={BadgeDollarSign} label="Open revenue" value={currency.format(openRevenue)} detail="Active pipeline" />
-        <Stat icon={PackageCheck} label="Ready pickups" value="1" detail="Send reminder" />
+        <Stat icon={PackageCheck} label="Ready pickups" value={orders.filter(o => o.status === 'Ready').length} detail="Send reminder" />
         <Stat icon={Printer} label="Print methods" value="5" detail="Built into quotes" />
       </div>
 
@@ -243,7 +268,7 @@ function Orders({ filter, setFilter, filteredOrders }) {
       <div className="table-card">
         <table>
           <thead><tr><th>Order #</th><th>Date</th><th>Customer</th><th>Type</th><th>Method</th><th>Status</th><th>Due</th><th>Total</th></tr></thead>
-          <tbody>{filteredOrders.map((order) => <tr key={order.id}><td><strong>{order.id}</strong></td><td>{order.date}</td><td>{order.customer}</td><td>{order.type}</td><td>{order.method}</td><td><span className={statusClass[order.status]}>{order.status}</span></td><td>{order.due}</td><td><strong>{currency.format(order.total)}</strong></td></tr>)}</tbody>
+          <tbody>{filteredOrders.map((order) => <tr key={order.id}><td><strong>{order.order_number}</strong></td><td>{new Date(order.created_at).toLocaleDateString()}</td><td>-</td><td>-</td><td>{order.method}</td><td><span className={statusClass[order.status]}>{order.status}</span></td><td>{order.due_date ? new Date(order.due_date).toLocaleDateString() : '-'}</td><td><strong>{currency.format(order.total)}</strong></td></tr>)}</tbody>
         </table>
       </div>
     </section>
@@ -277,25 +302,33 @@ function QuoteBuilder({ quote, setQuote, estimate }) {
   );
 }
 
-function Inventory() {
+function Inventory({ inventory, inventoryLoading }) {
+  if (inventoryLoading) {
+    return <div className="loading">Loading inventory...</div>;
+  }
+
   return (
     <section className="page-grid">
       <div className="stats-row">
         <Stat icon={Boxes} label="Total SKUs" value={inventory.length} detail="Starter catalog" />
-        <Stat icon={BarChart3} label="Low stock" value="2" detail="Needs reorder" />
+        <Stat icon={BarChart3} label="Low stock" value={inventory.filter(i => i.stock <= i.reorder_level).length} detail="Needs reorder" />
         <Stat icon={Printer} label="Production supplies" value="4 rolls" detail="DTF film on hand" />
         <Stat icon={Shirt} label="Best seller" value="Black tee" detail="Business favorite" />
       </div>
-      <DataTable headers={['SKU', 'Item', 'Color', 'Stock', 'Reorder', 'Best For']} rows={inventory.map((item) => [item.sku, item.item, item.color, item.stock, item.reorder, item.bestFor])} />
+      <DataTable headers={['SKU', 'Item', 'Color', 'Stock', 'Reorder', 'Best For']} rows={inventory.map((item) => [item.sku, item.item_name, item.color, item.stock, item.reorder_level, '-'])} />
     </section>
   );
 }
 
-function Customers() {
+function Customers({ customers, customersLoading }) {
+  if (customersLoading) {
+    return <div className="loading">Loading customers...</div>;
+  }
+
   return (
     <section className="content-grid two">
       <Panel title="Customer CRM" action="Export">
-        <div className="customer-list">{customers.map((customer) => <div className="customer-row" key={customer.name}><div><strong>{customer.name}</strong><span>{customer.segment} · {customer.orders} orders</span></div><div className="right-align"><strong>{currency.format(customer.value)}</strong><span className="status gold">{customer.status}</span></div></div>)}</div>
+        <div className="customer-list">{customers.map((customer) => <div className="customer-row" key={customer.id}><div><strong>{customer.name}</strong><span>{customer.segment} · {customer.order_count} orders</span></div><div className="right-align"><strong>{currency.format(customer.total_spent || 0)}</strong><span className="status gold">Active</span></div></div>)}</div>
       </Panel>
       <Panel title="Reorder opportunities" action="Create campaign">
         <Task icon={Store} title="Business uniform reorder" detail="Send saved-design reorder links to local business accounts." />
@@ -333,63 +366,134 @@ function Kiosk() {
 function Website() {
   return (
     <section className="website-preview">
-      <div className="site-hero"><p className="eyebrow">Public website preview</p><h3>Amarillo custom printing that makes ordering simple.</h3><p>{business.name} at {business.address}. Call {business.phone} or visit {business.website}.</p><button className="gold-button"><Globe2 size={18} /> Request a Quote</button></div>
-      <div className="service-grid">{services.map((service) => <div className="service-card" key={service}><Brush /><strong>{service}</strong><span>Quote-ready service page</span></div>)}</div>
+      <div className="site-hero"><p className="eyebrow">Public website</p><h3>Creator Bar Landing</h3><p>This is where customers discover Yellow City, see services, and start orders.</p></div>
     </section>
   );
 }
 
 function Admin() {
   return (
-    <section className="content-grid two">
-      <Panel title="Shop settings" action="Manage">
-        <Info label="Business" value={business.name} />
-        <Info label="Owner" value={business.owner} />
-        <Info label={business.creatorTitle} value={business.creator} />
-        <Info label="Default turnaround" value="5-7 business days" />
-        <Info label="Proof approval required" value="Enabled" />
-      </Panel>
-      <Panel title="Next integrations" action="Roadmap">
-        <Task icon={MessageSquareText} title="SMS updates" detail="Text quote links, proof approvals, and pickup reminders." />
-        <Task icon={FileImage} title="Artwork storage" detail="Store uploaded logos and design files by customer account." />
-        <Task icon={BarChart3} title="Revenue analytics" detail="Track services, margins, and repeat customers." />
+    <section className="page-grid">
+      <Panel title="Admin Settings" action="Save">
+        <p>Admin features coming soon...</p>
       </Panel>
     </section>
   );
 }
 
+// Helper components
 function Stat({ icon: Icon, label, value, detail }) {
-  return <div className="stat-card"><Icon size={22} /><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>;
+  return (
+    <div className="stat-card">
+      <Icon size={24} />
+      <p className="stat-label">{label}</p>
+      <p className="stat-value">{value}</p>
+      <p className="stat-detail">{detail}</p>
+    </div>
+  );
 }
 
 function Panel({ title, action, children }) {
-  return <div className="panel"><div className="panel-header"><h3>{title}</h3>{action && <button>{action}</button>}</div>{children}</div>;
+  return (
+    <div className="panel">
+      <div className="panel-header">
+        <h3>{title}</h3>
+        {action && <button className="action-link">{action}</button>}
+      </div>
+      <div className="panel-body">{children}</div>
+    </div>
+  );
 }
 
 function OrderCard({ order }) {
-  return <div className="order-card"><div><strong>{order.id}</strong><span>{order.customer} · {order.quantity} pcs · {order.method}</span></div><span className={statusClass[order.status]}>{order.status}</span></div>;
-}
-
-function Task({ icon: Icon, title, detail }) {
-  return <div className="task-row"><div className="task-icon"><Icon size={19} /></div><div><strong>{title}</strong><span>{detail}</span></div></div>;
-}
-
-function Field({ label, value, onChange, placeholder, type = 'text' }) {
-  return <label className="field"><span>{label}</span><input type={type} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} /></label>;
-}
-
-function Select({ label, value, onChange, options }) {
-  return <label className="field"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option}>{option}</option>)}</select></label>;
-}
-
-function Program({ title, reward, detail }) {
-  return <div className="program-card"><Gift /><p className="eyebrow">Loyalty program</p><h3>{title}</h3><strong>{reward}</strong><p>{detail}</p></div>;
+  return (
+    <div className="order-card">
+      <strong>{order.order_number}</strong>
+      <span className={statusClass[order.status]}>{order.status}</span>
+      <p>{order.method} · {order.quantity} units</p>
+    </div>
+  );
 }
 
 function Info({ label, value }) {
-  return <div className="setting-row"><span>{label}</span><strong>{value}</strong></div>;
+  return (
+    <div className="info-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function Field({ label, type = 'text', value, placeholder, onChange }) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <input type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+function Select({ label, value, onChange, options }) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+    </div>
+  );
+}
+
+function Task({ icon: Icon, title, detail }) {
+  return (
+    <div className="task">
+      <Icon size={20} />
+      <div>
+        <strong>{title}</strong>
+        <p>{detail}</p>
+      </div>
+    </div>
+  );
+}
+
+function Program({ title, reward, detail }) {
+  return (
+    <div className="program-card">
+      <h4>{title}</h4>
+      <p className="reward">{reward}</p>
+      <p>{detail}</p>
+    </div>
+  );
 }
 
 function DataTable({ headers, rows }) {
-  return <div className="table-card"><table><thead><tr>{headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={`${index}-${cellIndex}`}>{cellIndex === 0 ? <strong>{cell}</strong> : cell}</td>)}</tr>)}</tbody></table></div>;
+  return (
+    <div className="table-card">
+      <table>
+        <thead>
+          <tr>
+            {headers.map((h) => <th key={h}>{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              {row.map((cell, j) => <td key={j}>{cell}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route path="/:rest*" component={AppContent} />
+      </Switch>
+    </AuthProvider>
+  );
 }
