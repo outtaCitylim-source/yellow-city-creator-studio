@@ -33,8 +33,8 @@ export function authMiddleware(handler) {
  */
 export function errorResponse(res, statusCode, message, details = null) {
   return res.status(statusCode).json({
-    error: true,
-    message,
+    success: false,
+    error: message,
     ...(details && { details }),
   });
 }
@@ -69,3 +69,113 @@ export function handleCorsPreFlight(req, res) {
   }
   return null;
 }
+
+/**
+ * Rate limiting helper (simple in-memory implementation)
+ */
+const requestCounts = new Map();
+
+export function checkRateLimit(identifier, maxRequests = 100, windowMs = 60000) {
+  const now = Date.now();
+  const key = `${identifier}:${Math.floor(now / windowMs)}`;
+
+  if (!requestCounts.has(key)) {
+    requestCounts.set(key, 0);
+  }
+
+  const count = requestCounts.get(key);
+  if (count >= maxRequests) {
+    return { allowed: false, retryAfter: windowMs };
+  }
+
+  requestCounts.set(key, count + 1);
+
+  // Cleanup old entries
+  if (requestCounts.size > 1000) {
+    const cutoff = now - windowMs * 2;
+    for (const [k] of requestCounts) {
+      const timestamp = parseInt(k.split(':')[1], 10) * windowMs;
+      if (timestamp < cutoff) {
+        requestCounts.delete(k);
+      }
+    }
+  }
+
+  return { allowed: true };
+}
+
+/**
+ * Validate request method
+ */
+export function validateMethod(req, allowedMethods) {
+  return allowedMethods.includes(req.method);
+}
+
+/**
+ * Validate content type
+ */
+export function validateContentType(req, expectedType = 'application/json') {
+  const contentType = req.headers['content-type'];
+  return contentType && contentType.includes(expectedType);
+}
+
+/**
+ * Parse JSON body safely
+ */
+export async function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+      // Prevent large payloads (1MB limit)
+      if (body.length > 1e6) {
+        reject(new Error('Payload too large'));
+      }
+    });
+
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (error) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+
+    req.on('error', reject);
+  });
+}
+
+/**
+ * Log API request
+ */
+export function logRequest(req, method, endpoint) {
+  const timestamp = new Date().toISOString();
+  const userAgent = req.headers['user-agent'] || 'Unknown';
+  console.log(`[${timestamp}] ${method} ${endpoint} - ${userAgent}`);
+}
+
+/**
+ * Log API error
+ */
+export function logError(error, endpoint) {
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] ERROR at ${endpoint}:`, error.message);
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Stack:', error.stack);
+  }
+}
+
+export default {
+  authMiddleware,
+  errorResponse,
+  successResponse,
+  setCorsHeaders,
+  handleCorsPreFlight,
+  checkRateLimit,
+  validateMethod,
+  validateContentType,
+  parseBody,
+  logRequest,
+  logError,
+};
