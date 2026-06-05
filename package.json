@@ -43,12 +43,18 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.6.0",
+    "@stripe/stripe-js": "^9.7.0",
+    "chart.js": "^4.5.1",
     "jsonwebtoken": "^9.0.0",
     "lucide-react": "^0.408.0",
-    "pg": "^8.11.0",
+    "pg": "^8.21.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.16.0",
+    "recharts": "^3.8.1",
+    "resend": "^6.12.4",
+    "stripe": "^22.2.0",
     "wouter": "^3.10.0"
   },
   "devDependencies": {

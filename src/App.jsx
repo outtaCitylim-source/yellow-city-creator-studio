@@ -497,3 +497,7 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+// Import new pages
+import Analytics from './pages/Analytics';
+import Checkout from './pages/Checkout';
