@@ -5,9 +5,14 @@ import CreatorBar from './CreatorBar.jsx';
 export default function StudioShell() {
   const [mode, setMode] = useState('public');
 
+  const openStudio = () => {
+    setMode('studio');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (mode === 'studio') {
     return <App />;
   }
 
-  return <CreatorBar onOpenStudio={() => setMode('studio')} />;
+  return <CreatorBar onOpenStudio={openStudio} />;
 }
