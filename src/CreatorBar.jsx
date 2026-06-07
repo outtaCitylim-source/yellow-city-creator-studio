@@ -2,6 +2,15 @@ import { ArrowRight, CheckCircle2, Globe2, MapPin, Phone, Shirt, Sparkles } from
 import { business, catalog, proofPoints, techniques, workflow } from './data.js';
 
 export default function CreatorBar({ onOpenStudio }) {
+  const handleStartOrder = () => {
+    if (typeof onOpenStudio === 'function') {
+      onOpenStudio();
+      return;
+    }
+
+    window.location.hash = '#studio';
+  };
+
   return (
     <main className="creator-site">
       <section className="creator-hero-public">
@@ -11,12 +20,12 @@ export default function CreatorBar({ onOpenStudio }) {
           <span>DTF · DTG · Embroidery · Garment Wash</span>
         </div>
         <p className="creator-small">{business.tagline}</p>
-        <h1>Yellow City <span>Creator Bar</span></h1>
+        <h1>Yellow City <span>Creator Studio</span></h1>
         <p className="creator-lead">
-          Premium custom apparel printed, embroidered, and designed in Amarillo, TX — built for walk-ins, online quote requests, and full brand rollouts.
+          Premium custom apparel printed, embroidered, and designed in Amarillo, Texas — built for walk-ins, online quote requests, team stores, business accounts, and event merch.
         </p>
         <div className="creator-actions">
-          <button onClick={onOpenStudio} className="gold-button">Start Your Order <ArrowRight size={18} /></button>
+          <button type="button" onClick={handleStartOrder} className="gold-button">Start Your Order <ArrowRight size={18} /></button>
           <a className="ghost-button" href={`tel:${business.phone}`}>Talk to Us</a>
         </div>
       </section>
@@ -68,12 +77,12 @@ export default function CreatorBar({ onOpenStudio }) {
       <section className="creator-why-public">
         <div>
           <p className="eyebrow">Why Yellow City</p>
-          <h2>Amarillo's premier print studio.</h2>
+          <h2>Built for Amarillo print production.</h2>
           <p>
-            Born in the Texas Panhandle, {business.name} brings high-quality custom print production to Amarillo. Every order gets a digital proof, a clear approval path, and a real person behind the work.
+            {business.name} brings high-quality custom print production to Amarillo. Every order can move through quote intake, proofing, approval, production, pickup, and customer follow-up without getting lost in messages or paper notes.
           </p>
           <div className="creator-actions left">
-            <button onClick={onOpenStudio} className="gold-button">Get a Quote</button>
+            <button type="button" onClick={handleStartOrder} className="gold-button">Get a Quote</button>
             <a className="ghost-button" href={`https://${business.website}`}>Visit Website</a>
           </div>
         </div>
@@ -93,7 +102,7 @@ export default function CreatorBar({ onOpenStudio }) {
         <p className="eyebrow">Ready to print?</p>
         <h2>One logo. Many products.</h2>
         <p>Start in-store at the Amarillo studio or submit a quote online.</p>
-        <button onClick={onOpenStudio} className="gold-button">Start Your Order</button>
+        <button type="button" onClick={handleStartOrder} className="gold-button">Start Your Order</button>
       </section>
 
       <section className="creator-contact-public">
