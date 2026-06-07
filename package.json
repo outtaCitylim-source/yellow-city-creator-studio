@@ -37,6 +37,7 @@
     "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "audit:critical": "npm audit --audit-level=critical",
     "migrate:dev": "node api/migrations/run.js",
     "migrate:prod": "NODE_ENV=production node api/migrations/run.js",
     "seed": "node api/seed.js",
@@ -62,14 +63,14 @@
     "@testing-library/react": "^14.1.2",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.55.0",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-prettier": "^9.1.1",
     "prettier": "^3.1.1",
     "typescript": "^5.3.3",
-    "vite": "^5.0.8",
-    "vitest": "^1.1.0"
+    "vite": "^5.4.20",
+    "vitest": "^1.6.1"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": "20.x",
     "npm": ">=9.0.0"
   }
 }
